@@ -44,3 +44,29 @@ class SerialNumberView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request):
+        sns = request.data.get('sn')  # expecting a list of serial numbers
+        work_order = request.data.get('work_order')
+
+        if not sns or not work_order:
+            return Response(
+                {"detail": "'sn' (list) and 'work_order' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not isinstance(sns, list):
+            return Response(
+                {"detail": "'sn' must be a list of serial numbers."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serials_to_delete = SN_Master.objects.filter(sn__in=sns, work_order__workorder=work_order)
+
+        count = serials_to_delete.count()
+        if count == 0:
+            return Response({"detail": "No matching serial numbers found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serials_to_delete.delete()
+
+        return Response({"detail": f"Deleted {count} serial number(s)."}, status=status.HTTP_204_NO_CONTENT)
