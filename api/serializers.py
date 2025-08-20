@@ -5,8 +5,12 @@ class WorkOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkOrder
         fields = '__all__'
-        
 
+class ProjectMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project_master
+        fields = '__all__'
+        
 class SerialNumberSerializer(serializers.ModelSerializer):
     work_order = serializers.SlugRelatedField(
         slug_field='workorder',
