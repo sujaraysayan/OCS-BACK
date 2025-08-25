@@ -1,9 +1,13 @@
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import WorkOrder
+from .models import *
 from .serializers import *
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import viewsets , filters
+
 
 class WorkOrderListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -23,6 +27,38 @@ class WorkOrderListView(APIView):
                 return Response({'error': 'Data not found'}, status=404)
         else:
             return Response({'error': 'Search parameter is required'}, status=400)
+
+# class ProjectMasterListView(APIView):
+#     permission_classes = [IsAuthenticated]
+#     queryset = Project_master.objects.all()
+#     serializer_class = ProjectMasterSerializer
+#     search_fields = ['workorder']
+
+#     def get(self, request):
+#         search = request.query_params.get('search')
+#         if search:
+#             queryset = self.queryset.filter(workorder=search)
+#             if queryset.exists():
+#                 serializer = ProjectMasterSerializer(queryset.first())
+#                 print(serializer.data)
+#                 return Response(serializer.data)
+#             else:
+#                 return Response({'error': 'Data not found'}, status=404)
+#         else:
+#             return Response({'error': 'Search parameter is required'}, status=400)
+
+class CustomPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class ProjectMasterViewSet(viewsets.ModelViewSet):
+    queryset = Project_master.objects.all()
+    serializer_class = ProjectMasterSerializer
+    pagination_class = CustomPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['project', 'description', 'customer_project']
+    ordering_fields = ['project', 'description', 'create_date']
         
 class SerialNumberView(APIView):
     permission_classes = [IsAuthenticated]
